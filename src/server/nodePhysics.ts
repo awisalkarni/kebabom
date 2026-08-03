@@ -1,12 +1,26 @@
-import { ColliderDesc, Ray, RigidBodyDesc, World as RapierWorld } from '@dimforge/rapier3d';
-import type { RigidBody } from '@dimforge/rapier3d';
-import { GRAVITY_Y, PHYSICS_FIXED_DT } from './constants';
-import type { BodyParams, SimBody, SimPhysics, Vec3 } from './sim/types';
+import { ColliderDesc, Ray, RigidBodyDesc, World, init } from '@dimforge/rapier3d-compat';
+import type { RigidBody } from '@dimforge/rapier3d-compat';
+import { GRAVITY_Y, PHYSICS_FIXED_DT } from '../game/constants';
+import type { BodyParams, SimBody, SimPhysics, Vec3 } from '../game/sim/types';
 
-export class Physics implements SimPhysics {
-  readonly rapier = new RapierWorld({ x: 0, y: GRAVITY_Y, z: 0 });
+let initialized = false;
+
+export class NodePhysics implements SimPhysics {
+  static async create(): Promise<NodePhysics> {
+    if (!initialized) {
+      await init();
+      initialized = true;
+    }
+    return new NodePhysics();
+  }
+
+  readonly rapier: World;
   timestep = PHYSICS_FIXED_DT;
   private readonly raws = new Map<number, RigidBody>();
+
+  private constructor() {
+    this.rapier = new World({ x: 0, y: GRAVITY_Y, z: 0 });
+  }
 
   createBody(params: BodyParams): SimBody {
     const desc = params.fixed ? RigidBodyDesc.fixed() : RigidBodyDesc.dynamic();

@@ -22,6 +22,7 @@ See [docs/prd.md](docs/prd.md) for the full product requirements.
 - `npm run build` — typecheck + production build
 - `npm run preview` — preview the production build
 - `npm run typecheck` — run `tsc --noEmit`
+- `npm test` — run the headless simulation test (`tsx tests/sim-headless.ts`)
 
 ## Conventions
 
@@ -34,13 +35,20 @@ See [docs/prd.md](docs/prd.md) for the full product requirements.
 
 ## Architecture
 
-- `src/game/Game.ts` — orchestrator: owns physics/entities, fixed-step loop, explosion + wave wiring, HUD sync, bounds enforcement
-- `src/game/Player.ts`, `Enemy.ts`, `Bomb.ts` — entities implementing `Entity` (fixedUpdate/syncVisual/dispose); Player and Enemy also implement `Damageable`
-- `src/game/Physics.ts` — Rapier world wrapper (static boxes, step)
-- `src/game/ExplosionSystem.ts` — AOE damage + impulse + chain detonation + juice
-- `src/game/WaveSystem.ts` — escalating waves, boss every 5th, spawn queue
-- `src/game/Particles.ts` — additive shader particle pool
-- `src/game/Input.ts`, `Sfx.ts` (WebAudio), `Camera.ts`, `Arena.ts`, `Renderer.ts`
+The simulation is split from rendering so the same game logic runs headless in Node (the multiplayer server) and in the browser.
+
+- `src/game/sim/` — headless, THREE-free simulation (no DOM, no audio, runs in Node)
+  - `simulation.ts` — `Simulation`: owns physics world, player/enemies/bombs, waves, score, bounds, bomb throw + explosion logic; emits events (wave start/clear, enemy killed, explosion, player damaged, bomb thrown)
+  - `player.ts` / `enemy.ts` / `bomb.ts` — `SimPlayer` / `SimEnemy` / `SimBomb`: rapier bodies + game state, driven by `PlayerInput`; no meshes
+  - `waves.ts` — escalating waves, boss every 5th, spawn queue (injectable RNG for reproducibility)
+  - `types.ts` — `Vec3` / `PlayerInput` / `SimPhysics` / `SimBody` interfaces (physics is dependency-injected)
+  - `events.ts` — `SimulationEvents` + `ExplosionOptions`
+- `src/game/Physics.ts` — client `SimPhysics` adapter over `@dimforge/rapier3d`
+- `src/server/nodePhysics.ts` — Node `SimPhysics` adapter over `@dimforge/rapier3d-compat` (`await NodePhysics.create()`)
+- `src/game/views/` — THREE meshes reconciled to sim entities by id (`PlayerView` / `EnemyView` / `BombView` / `Views`)
+- `src/game/Game.ts` — client orchestrator: builds `PlayerInput` from keyboard/mouse, runs the fixed-step sim loop, syncs views/HUD/juice
+- `src/game/Particles.ts` — additive shader particle pool (client-only)
+- `src/game/Input.ts`, `Sfx.ts` (WebAudio), `Camera.ts`, `Arena.ts`, `Renderer.ts` — client-only
 - `src/state/gameStore.ts` — HUD state (hp/wave/score/bombs); DOM in `src/main.ts` subscribes
 
 ## Controls (desktop)

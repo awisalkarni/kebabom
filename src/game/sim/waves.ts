@@ -1,4 +1,4 @@
-import type { EnemyKind } from './Enemy';
+import type { EnemyKind } from './enemy';
 
 interface WaveCallbacks {
   onSpawn: (wave: number, kind: EnemyKind) => void;
@@ -14,7 +14,10 @@ export class WaveSystem {
   private delayTimer = 1.5;
   private state: 'delaying' | 'spawning' | 'clearing' = 'delaying';
 
-  constructor(private readonly cb: WaveCallbacks) {}
+  constructor(
+    private readonly cb: WaveCallbacks,
+    private readonly random: () => number,
+  ) {}
 
   fixedUpdate(dt: number) {
     switch (this.state) {
@@ -64,7 +67,7 @@ export class WaveSystem {
 
   private shuffle(arr: EnemyKind[]) {
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(this.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
   }

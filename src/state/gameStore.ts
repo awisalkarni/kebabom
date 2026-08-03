@@ -13,6 +13,7 @@ interface GameState {
   setHealth: (health: number) => void;
   setBombs: (bombs: number) => void;
   setWave: (wave: number) => void;
+  setScore: (score: number) => void;
   addScore: (amount: number) => void;
   reset: () => void;
 }
@@ -34,6 +35,7 @@ export const useGameStore = createStore<GameState>()((set) => ({
   setHealth: (health) => set({ health }),
   setBombs: (bombs) => set({ bombs }),
   setWave: (wave) => set({ wave }),
+  setScore: (score) => set({ score }),
   addScore: (amount) => set((s) => ({ score: s.score + amount })),
   reset: () => set({ ...initialState }),
 }));
