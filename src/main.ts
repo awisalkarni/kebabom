@@ -13,6 +13,7 @@ app.insertAdjacentHTML('beforeend', `
   <div id="flash"></div>
   <div id="banner"></div>
   <div id="hud">
+    <button id="pause-btn" aria-label="Pause">&#10074;&#10074;</button>
     <div class="hud-top">
       <div class="hud-health">
         <span class="label">HP</span>
@@ -46,6 +47,21 @@ app.insertAdjacentHTML('beforeend', `
     </div>
     <button id="restart">Play again</button>
   </div>
+  <div id="pause" hidden>
+    <h1>Paused</h1>
+    <div class="controls">
+      <div><span>WASD</span> Move</div>
+      <div><span>Shift</span> Sprint</div>
+      <div><span>Space</span> Jump</div>
+      <div><span>Left Click</span> Throw bomb</div>
+      <div><span>Right Click</span> Dash</div>
+      <div><span>Esc</span> Pause / Resume</div>
+    </div>
+    <div class="pause-buttons">
+      <button id="resume">Resume</button>
+      <button id="pause-restart" class="ghost">Restart</button>
+    </div>
+  </div>
 `);
 
 const game = new Game(canvas);
@@ -61,6 +77,10 @@ const gameoverEl = document.getElementById('gameover')!;
 const finalWaveEl = document.getElementById('final-wave')!;
 const finalScoreEl = document.getElementById('final-score')!;
 const restartBtn = document.getElementById('restart')!;
+const pauseEl = document.getElementById('pause')!;
+const pauseBtn = document.getElementById('pause-btn')!;
+const resumeBtn = document.getElementById('resume')!;
+const pauseRestartBtn = document.getElementById('pause-restart')!;
 const scoreFormEl = document.getElementById('score-form')!;
 const initialsEl = document.getElementById('initials') as HTMLInputElement;
 const submitBtn = document.getElementById('submit-score') as HTMLButtonElement;
@@ -139,8 +159,20 @@ useGameStore.subscribe((state, prev) => {
     finalWaveEl.textContent = String(state.wave);
     finalScoreEl.textContent = String(state.score);
     gameoverEl.hidden = false;
+    pauseEl.hidden = true;
     void showGameOver();
   }
+  if (state.phase !== prev.phase) {
+    pauseEl.hidden = state.phase !== 'paused';
+  }
+});
+
+pauseBtn.addEventListener('click', () => game.togglePause());
+resumeBtn.addEventListener('click', () => game.togglePause());
+pauseRestartBtn.addEventListener('click', () => {
+  pauseEl.hidden = true;
+  useGameStore.getState().reset();
+  location.reload();
 });
 
 restartBtn.addEventListener('click', () => {

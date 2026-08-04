@@ -1,14 +1,14 @@
 import { createStore } from 'zustand/vanilla';
 
 interface GameState {
-  phase: 'boot' | 'playing' | 'gameover';
+  phase: 'boot' | 'playing' | 'paused' | 'gameover';
   fps: number;
   health: number;
   maxHealth: number;
   bombs: number;
   wave: number;
   score: number;
-  setPhase: (phase: 'boot' | 'playing' | 'gameover') => void;
+  setPhase: (phase: 'boot' | 'playing' | 'paused' | 'gameover') => void;
   setFps: (fps: number) => void;
   setHealth: (health: number) => void;
   setBombs: (bombs: number) => void;

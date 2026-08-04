@@ -110,6 +110,96 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+#pause-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  pointer-events: auto;
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8eef5;
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#pause-btn:hover {
+  background: rgba(20, 28, 40, 0.8);
+}
+
+#pause {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(8, 12, 18, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+#pause[hidden] {
+  display: none;
+}
+
+#pause h1 {
+  font-size: 48px;
+  letter-spacing: 6px;
+  margin-bottom: 6px;
+}
+
+#pause .controls {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 8px 30px;
+  font-size: 15px;
+  color: #9fb3c8;
+  background: rgba(10, 14, 20, 0.6);
+  padding: 14px 24px;
+  border-radius: 10px;
+}
+
+#pause .controls span {
+  color: #e8eef5;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.pause-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.pause-buttons button {
+  padding: 12px 34px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a2330;
+  background: #ffd60a;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pause-buttons button:hover {
+  background: #ffe35c;
+}
+
+.pause-buttons button.ghost {
+  background: transparent;
+  color: #e8eef5;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.pause-buttons button.ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 #gameover {
   position: absolute;
   inset: 0;

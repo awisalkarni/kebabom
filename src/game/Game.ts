@@ -43,6 +43,7 @@ export class Game {
   private raf = 0;
   private fpsSmoothing = 0;
   private disposed = false;
+  private paused = false;
   private trauma = 0;
   private flashAlpha = 0;
   private bannerText = '';
@@ -84,10 +85,38 @@ export class Game {
     window.addEventListener('resize', this.handleResize);
     this.handleResize();
     this.timer.connect(document);
+
+    const w = window as unknown as {
+      __kebaboom?: {
+        player: () => { x: number; y: number; z: number };
+        enemies: () => Array<{ x: number; y: number; z: number }>;
+        aimAt: (x: number, z: number) => void;
+      };
+    };
+    w.__kebaboom = {
+      player: () => this.sim.player.position(),
+      enemies: () => this.sim.enemies.map((e) => e.body.translation()),
+      aimAt: (x, z) => {
+        const p = new THREE.Vector3(x, 0, z).project(this.camera.three);
+        this.input.mouse.set(p.x, p.y);
+      },
+    };
   }
 
   start() {
     this.loop(performance.now());
+  }
+
+  togglePause() {
+    if (!this.sim.player.alive) return;
+    this.setPaused(!this.paused);
+  }
+
+  private setPaused(paused: boolean) {
+    if (this.paused === paused) return;
+    this.paused = paused;
+    this.input.clear();
+    useGameStore.getState().setPhase(paused ? 'paused' : 'playing');
   }
 
   private createOverlay(id: string): HTMLElement {
@@ -103,21 +132,28 @@ export class Game {
 
     this.timer.update(timestamp);
     const frameDt = Math.min(this.timer.getDelta(), MAX_FRAME_TIME);
-    this.accumulator += frameDt;
 
-    while (this.accumulator >= PHYSICS_FIXED_DT) {
-      this.sim.fixedUpdate(PHYSICS_FIXED_DT, this.buildInput());
-      this.sim.step();
-      this.accumulator -= PHYSICS_FIXED_DT;
+    if (this.input.consumeEscape()) this.togglePause();
+
+    if (this.paused) {
+      this.accumulator = 0;
+    } else {
+      this.accumulator += frameDt;
+
+      while (this.accumulator >= PHYSICS_FIXED_DT) {
+        this.sim.fixedUpdate(PHYSICS_FIXED_DT, this.buildInput());
+        this.sim.step();
+        this.accumulator -= PHYSICS_FIXED_DT;
+      }
+
+      this.sim.processRemovals();
+      this.views.sync(this.sim, frameDt);
+      this.particles.update(frameDt);
+      this.updateCamera(frameDt);
+      this.updateJuice(frameDt);
+      this.syncHud();
+      this.updateFps(frameDt);
     }
-
-    this.sim.processRemovals();
-    this.views.sync(this.sim, frameDt);
-    this.particles.update(frameDt);
-    this.updateCamera(frameDt);
-    this.updateJuice(frameDt);
-    this.syncHud();
-    this.updateFps(frameDt);
 
     this.renderer.render(this.camera.three);
   };

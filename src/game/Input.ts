@@ -5,12 +5,14 @@ export class Input {
   private leftClickQueued = false;
   private rightClickQueued = false;
   private spaceQueued = false;
+  private escapeQueued = false;
   readonly mouse = new THREE.Vector2();
 
   private readonly onKeyDown = (e: KeyboardEvent) => {
     if (e.repeat) return;
     this.keys.add(e.code);
     if (e.code === 'Space') this.spaceQueued = true;
+    if (e.code === 'Escape') this.escapeQueued = true;
     e.preventDefault();
   };
   private readonly onKeyUp = (e: KeyboardEvent) => this.keys.delete(e.code);
@@ -73,5 +75,18 @@ export class Input {
     const queued = this.spaceQueued;
     this.spaceQueued = false;
     return queued;
+  }
+
+  consumeEscape(): boolean {
+    const queued = this.escapeQueued;
+    this.escapeQueued = false;
+    return queued;
+  }
+
+  clear() {
+    this.leftClickQueued = false;
+    this.rightClickQueued = false;
+    this.spaceQueued = false;
+    this.escapeQueued = false;
   }
 }
