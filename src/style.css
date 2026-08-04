@@ -169,6 +169,15 @@ body {
   margin-right: 8px;
 }
 
+#pause-boards {
+  display: flex;
+  gap: 40px;
+}
+
+#pause-boards[hidden] {
+  display: none;
+}
+
 .pause-buttons {
   display: flex;
   gap: 12px;

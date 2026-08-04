@@ -57,8 +57,19 @@ app.insertAdjacentHTML('beforeend', `
       <div><span>Right Click</span> Dash</div>
       <div><span>Esc</span> Pause / Resume</div>
     </div>
+    <div id="pause-boards" hidden>
+      <div class="board">
+        <h2>Today</h2>
+        <ol id="pause-today-board"></ol>
+      </div>
+      <div class="board">
+        <h2>All Time</h2>
+        <ol id="pause-all-board"></ol>
+      </div>
+    </div>
     <div class="pause-buttons">
       <button id="resume">Resume</button>
+      <button id="highscores">High Scores</button>
       <button id="pause-restart" class="ghost">Restart</button>
     </div>
   </div>
@@ -81,6 +92,10 @@ const pauseEl = document.getElementById('pause')!;
 const pauseBtn = document.getElementById('pause-btn')!;
 const resumeBtn = document.getElementById('resume')!;
 const pauseRestartBtn = document.getElementById('pause-restart')!;
+const highscoresBtn = document.getElementById('highscores') as HTMLButtonElement;
+const pauseBoardsEl = document.getElementById('pause-boards')!;
+const pauseTodayBoardEl = document.getElementById('pause-today-board')!;
+const pauseAllBoardEl = document.getElementById('pause-all-board')!;
 const scoreFormEl = document.getElementById('score-form')!;
 const initialsEl = document.getElementById('initials') as HTMLInputElement;
 const submitBtn = document.getElementById('submit-score') as HTMLButtonElement;
@@ -164,11 +179,30 @@ useGameStore.subscribe((state, prev) => {
   }
   if (state.phase !== prev.phase) {
     pauseEl.hidden = state.phase !== 'paused';
+    if (state.phase === 'paused') pauseBoardsEl.hidden = true;
   }
 });
 
 pauseBtn.addEventListener('click', () => game.togglePause());
 resumeBtn.addEventListener('click', () => game.togglePause());
+highscoresBtn.addEventListener('click', async () => {
+  if (!pauseBoardsEl.hidden) {
+    pauseBoardsEl.hidden = true;
+    return;
+  }
+  highscoresBtn.disabled = true;
+  try {
+    const [today, all] = await Promise.all([fetchScores('today'), fetchScores('all')]);
+    renderBoard(pauseTodayBoardEl, today);
+    renderBoard(pauseAllBoardEl, all);
+  } catch {
+    pauseTodayBoardEl.innerHTML = '<li class="empty">Leaderboard unavailable</li>';
+    pauseAllBoardEl.innerHTML = '';
+  } finally {
+    pauseBoardsEl.hidden = false;
+    highscoresBtn.disabled = false;
+  }
+});
 pauseRestartBtn.addEventListener('click', () => {
   pauseEl.hidden = true;
   useGameStore.getState().reset();
