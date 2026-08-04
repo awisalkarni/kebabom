@@ -9,6 +9,8 @@ export class Input {
   readonly mouse = new THREE.Vector2();
 
   private readonly onKeyDown = (e: KeyboardEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target && (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable)) return;
     if (e.repeat) return;
     this.keys.add(e.code);
     if (e.code === 'Space') this.spaceQueued = true;
