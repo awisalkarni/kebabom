@@ -88,17 +88,43 @@ export class Game {
 
     const w = window as unknown as {
       __kebaboom?: {
-        player: () => { x: number; y: number; z: number };
-        enemies: () => Array<{ x: number; y: number; z: number }>;
+        player: () => { x: number; y: number; z: number; hp: number; bombs: number };
+        enemies: () => Array<{ x: number; y: number; z: number; hp: number; kind: string }>;
+        bombs: () => Array<{ x: number; y: number; z: number }>;
         aimAt: (x: number, z: number) => void;
+        detonateNearEnemy: () => number;
       };
     };
     w.__kebaboom = {
-      player: () => this.sim.player.position(),
-      enemies: () => this.sim.enemies.map((e) => e.body.translation()),
+      player: () => {
+        const p = this.sim.player.position();
+        return { ...p, hp: this.sim.player.healthValue, bombs: this.sim.player.bombCount };
+      },
+      enemies: () =>
+        this.sim.enemies.map((e) => ({
+          ...e.body.translation(),
+          hp: Math.max(0, Math.round(e.health)),
+          kind: e.kind,
+        })),
+      bombs: () => this.sim.bombs.map((b) => b.body.translation()),
       aimAt: (x, z) => {
         const p = new THREE.Vector3(x, 0, z).project(this.camera.three);
         this.input.mouse.set(p.x, p.y);
+      },
+      detonateNearEnemy: () => {
+        let count = 0;
+        for (const bomb of [...this.sim.bombs]) {
+          const bt = bomb.body.translation();
+          const close = this.sim.enemies.some((e) => {
+            const et = e.body.translation();
+            return Math.hypot(et.x - bt.x, et.y - bt.y, et.z - bt.z) <= 1.6;
+          });
+          if (close) {
+            bomb.detonate();
+            count++;
+          }
+        }
+        return count;
       },
     };
   }
